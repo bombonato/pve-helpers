@@ -83,6 +83,19 @@ exec_pci_unbind() {
   done
 }
 
+exec_set_amd_reset_method() {
+  set -- "0000:$1:$2.$3"
+
+  for devid; do
+    if [[ -e "/sys/bus/pci/devices/$devid" ]]; then
+      echo "Setting AMD Reset Method of '$devid' to device_specific for $VMID..."
+      echo 'device_specific' > "/sys/bus/pci/devices/$devid/reset_method"
+    else
+      echo "The '$devid' not found in '/sys/bus/pci/devices'"
+    fi
+  done
+}
+
 exec_cpu_taskset() {
   sleep_once
 
@@ -164,6 +177,10 @@ exec_cmds() {
 
       "#pci_rebind")
         if_action post-stop exec_pci_rescan
+        ;;
+      
+      "#set_amd_reset_method")
+        if_action pre-start exec_set_amd_reset_method "$ARG1" "$ARG2" "$ARG3"
         ;;
 
       "#qm_conflict")
