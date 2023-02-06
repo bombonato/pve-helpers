@@ -21,6 +21,7 @@ Clone and compile the repository:
 ```bash
 # install dependencies
 sudo apt-get install -f ruby ruby-dev rubygems build-essential
+sudo apt-get install -f inotify-tools expect
 sudo gem install fpm
 ```
 
@@ -111,6 +112,17 @@ dkms build vendor-reset/0.1.1
 dkms install vendor-reset/0.1.1
 echo vendor-reset >> /etc/modules
 modprobe vendor-reset
+```
+
+### 2.2.1. Set Reset Method
+
+Even using vendor-reset, some AMD graphics cards need to specify the reset method to "device_specific" which takes care of managing the reset (normally it's like "bus")
+
+```yaml
+cat /etc/pve/qemu-server/204.conf
+
+## Define Reset Method for Device
+#set_amd_reset_method 02 00 0
 ```
 
 ### 2.3. `set_halt_poll`
