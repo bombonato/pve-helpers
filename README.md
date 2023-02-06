@@ -21,6 +21,7 @@ Clone and compile the repository:
 ```bash
 # install dependencies
 sudo apt-get install -f ruby ruby-dev rubygems build-essential
+sudo apt-get install -f inotify-tools expect
 sudo gem install fpm
 ```
 
