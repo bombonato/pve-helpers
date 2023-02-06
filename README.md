@@ -213,7 +213,21 @@ cat /etc/pve/qemu-server/204.conf
 #pci_rebind
 ```
 
-### 2.7. `pci_remove` and `pci_rescan`
+### 2.7. `vfio_pci_unbind` and `pci_bind_host`
+
+It might be desirable to bind back the GPU to host, but using device remove and pci rescan method may cause issues with vendor-reset module, another approach would be to remove gpu device from vfio driver and revert to original host drivers.
+
+```yaml
+cat /etc/pve/qemu-server/204.conf
+
+## Rebind GPU to host
+#vfio_pci_unbind 02 00 0
+#vfio_pci_unbind 02 00 1
+#pci_bind_host 02 00 0 amdgpu
+#pci_bind_host 02 00 1 snd_hda_intel
+```
+
+### 2.8. `pci_remove` and `pci_rescan`
 
 In a reverse scenario of 2.6, sometimes host will actually hold some memory in PCI device's address space, and prevent that space being handled by vfio-pci driver and thus the VM. One common example is `simplefb` allocating `BOOTFB` in [boot GPU's address space](https://github.com/torvalds/linux/blob/7e57714cd0ad2d5bb90e50b5096a0e671dec1ef3/drivers/firmware/sysfb_simplefb.c#L115) despite setting `video=simplefb:off` in kernel cmdline. A [hack](https://github.com/furkanmustafa/forcefully-remove-bootfb) exists but it is [not guranteed to work for everyone](https://github.com/SRH1605/forcefully-remove-bootfb/pull/1#issuecomment-1054073276). As such one can unbind and rebind the PCI device to free up the entire address space allocated for the device, indirectly getting rid of the offending memory allocation. However, this won't work on all memory allocation. For memory occupied by `efifb`/`simplefb`, please see below.
 
@@ -227,7 +241,7 @@ cat /etc/pve/qemu-server/204.conf
 #pci_rescan
 ```
 
-### 2.8. `fboff`
+### 2.9. `fboff`
 
 In addition to the `BOOTFB` issue, many users need to specify `video=efifb:off` or equivalent kernel parameter. However, [not everyone can use that](https://www.reddit.com/r/VFIO/comments/ks7ve3/alternative_to_efifboff/) in their workflow. As such, `fboff` can be used as an alternative to kernel parameter.
 
@@ -238,7 +252,7 @@ cat /etc/pve/qemu-server/204.conf
 #fboff simple-framebuffer.0
 ```
 
-### 2.9 `virtiofsd`
+### 2.10 `virtiofsd`
 
 ```yaml
 cat /etc/pve/qemu-server/101.conf

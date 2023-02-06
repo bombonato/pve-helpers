@@ -83,6 +83,38 @@ exec_pci_unbind() {
   done
 }
 
+exec_vfio_pci_unbind() {
+  set -- "0000:$1:$2.$3"
+
+  for devid; do
+    if [[ -e "/sys/bus/pci/devices/$devid" ]]; then
+      echo "Running VFIO PCI unbind of '$devid' for $VMID..."
+      echo "$devid" > "/sys/bus/pci/drivers/vfio-pci/unbind"
+    elif [[ -e "/sys/bus/pci/devices/$devid.0" ]]; then
+      echo "Running VFIO PCI unbind of '$devid.0' for $VMID..."
+      echo "$devid.0" > "/sys/bus/pci/drivers/vfio-pci/unbind"
+    elif [[ -e "/sys/bus/pci/devices/$devid.1" ]]; then
+      echo "Running VFIO PCI unbind of '$devid.1' for $VMID..."
+      echo "$devid.1" > "/sys/bus/pci/drivers/vfio-pci/unbind"
+    else
+      echo "The '$devid' not found in '/sys/bus/pci/devices'"
+    fi
+  done
+}
+
+exec_pci_bind_host() {
+  set -- "0000:$1:$2.$3"
+
+  for devid; do
+    if [[ -e "/sys/bus/pci/devices/$devid" ]]; then
+      echo "Running PCI bind of '$devid' back to the host for $VMID..."
+      echo "$devid" > "/sys/bus/pci/drivers/$4/bind"
+    else
+      echo "The '$devid' not found in '/sys/bus/pci/devices'"
+    fi
+  done
+}
+
 exec_set_amd_reset_method() {
   set -- "0000:$1:$2.$3"
 
@@ -179,6 +211,14 @@ exec_cmds() {
         if_action post-stop exec_pci_rescan
         ;;
       
+      "#vfio_pci_unbind")
+        if_action post-stop exec_vfio_pci_unbind "$ARG1" "$ARG2" "$ARG3"
+        ;;
+      
+      "#pci_bind_host")
+        if_action post-stop exec_pci_bind_host "$ARG1" "$ARG2" "$ARG3" "$ARG4"
+        ;;
+
       "#set_amd_reset_method")
         if_action pre-start exec_set_amd_reset_method "$ARG1" "$ARG2" "$ARG3"
         ;;
