@@ -113,6 +113,17 @@ echo vendor-reset >> /etc/modules
 modprobe vendor-reset
 ```
 
+### 2.2.1. Set Reset Method
+
+Even using vendor-reset, some AMD graphics cards need to specify the reset method to "device_specific" which takes care of managing the reset (normally it's like "bus")
+
+```yaml
+cat /etc/pve/qemu-server/204.conf
+
+## Define Reset Method for Device
+#set_amd_reset_method 02 00 0
+```
+
 ### 2.3. `set_halt_poll`
 
 This setting changes the value of the kvm parameter `halt_poll_ns` in `/sys/module/kvm/parameters/halt_poll_ns`
